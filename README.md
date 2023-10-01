@@ -1,8 +1,10 @@
 # Simple AWS Glue, Athena and CDK Example
 
-A walkthrough to use AWS Glue/Spark Job, s3 and Athena.
+A walkthrough to deploy an exemple of AWS Glue/Spark Job, s3 and Athena pipeline.
 
 Throughout the  `infra` folder has a Python/CDK project to create everything that you need to run this example.
+
+`infra/assets` folder has the glue script and data from Chicago Crimes.
 
 ## How To
 
@@ -39,6 +41,11 @@ Throughout the  `infra` folder has a Python/CDK project to create everything tha
     $ cdk synth
     $ cdk deploy
     ```
+
+In summary, after deploy, you can start the Glue Job, it will take about 2 minutes to run.
+
+A table will be created on default database with data from processed s3 stage bucket parquet file, that you can query using Athena.
+
 
 ## Resources
 
