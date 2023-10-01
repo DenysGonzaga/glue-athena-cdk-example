@@ -27,14 +27,14 @@ class GlueAthenaExampleStack(Stack):
                         block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
                         removal_policy=RemovalPolicy.RETAIN)
 
-        data_script_deployment = s3deploy.BucketDeployment(self, "deploy-data",
-            sources=[s3deploy.Source.asset(r'assets\glue_script')],
+        data_script_deployment = s3deploy.BucketDeployment(self, "deploy-glue-script",
+            sources=[s3deploy.Source.asset(r'assets/glue_script')],
             destination_bucket=assets_bucket,
             destination_key_prefix='glue-scripts'
         )
 
-        data_raw_deployment = s3deploy.BucketDeployment(self, "deploy-data",
-            sources=[s3deploy.Source.asset(r'assets\data')],
+        data_raw_deployment = s3deploy.BucketDeployment(self, "deploy-raw-data",
+            sources=[s3deploy.Source.asset(r'assets/data')],
             destination_bucket=raw_data_bucket,
             destination_key_prefix='crimes'
         )
