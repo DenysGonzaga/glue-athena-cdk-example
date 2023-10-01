@@ -15,7 +15,7 @@ Throughout the  `infra` folder has a Python/CDK project to create everything tha
 
 ## Architecture Design
 
-![design](assets\design\glue-athena-example-design.jpg?raw=true)
+![design](assets/design/glue-athena-example-design.jpg?raw=true)
 
 ## Example Setup
 
