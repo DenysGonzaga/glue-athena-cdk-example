@@ -13,25 +13,30 @@ class GlueAthenaExampleStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         raw_data_bucket = s3.Bucket(self, 
-                                "raw-data-bucket",
+                                "glue-athena-example-raw-data-bucket",
                                 block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
                                 removal_policy=RemovalPolicy.RETAIN)
         
         stage_data_bucket = s3.Bucket(self, 
-                        "stage-data-bucket",
+                        "glue-athena-example-stage-data-bucket",
+                        block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+                        removal_policy=RemovalPolicy.RETAIN)
+        
+        assets_bucket = s3.Bucket(self, 
+                        "glue-athena-example-assets-bucket",
                         block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
                         removal_policy=RemovalPolicy.RETAIN)
 
-        #data_example_deployment = s3deploy.BucketDeployment(self, "deploy-data",
-        #    sources=[s3deploy.Source.asset(r'assets\data')],
-        #    destination_bucket=data_bucket,
-        #    destination_key_prefix='raw'
-        #)
-
         data_script_deployment = s3deploy.BucketDeployment(self, "deploy-data",
             sources=[s3deploy.Source.asset(r'assets\glue_script')],
-            destination_bucket=data_bucket,
-            destination_key_prefix='glue-assets/scripts'
+            destination_bucket=assets_bucket,
+            destination_key_prefix='glue-scripts'
+        )
+
+        data_raw_deployment = s3deploy.BucketDeployment(self, "deploy-data",
+            sources=[s3deploy.Source.asset(r'assets\data')],
+            destination_bucket=raw_data_bucket,
+            destination_key_prefix='crimes'
         )
 
         glue_role = iam.Role(self, "glue-role",
@@ -49,17 +54,26 @@ class GlueAthenaExampleStack(Stack):
                             "s3:ListBucket"
                         ],
                         resources=[
-                            f"arn:aws:s3:::{data_bucket.bucket_name}"
+                            f"arn:aws:s3:::{raw_data_bucket.bucket_name}",
+                            f"arn:aws:s3:::{stage_data_bucket.bucket_name}"
+                        ],
+                    ),
+                    iam.PolicyStatement(
+                        effect=iam.Effect.ALLOW,
+                        actions=[
+                            "s3:GetObject"
+                        ],
+                        resources=[
+                            f"arn:aws:s3:::{raw_data_bucket.bucket_name}/*",
                         ],
                     ),
                     iam.PolicyStatement(
                         effect=iam.Effect.ALLOW,
                         actions=[
                             "s3:PutObject",
-                            "s3:GetObject"
                         ],
                         resources=[
-                            f"arn:aws:s3:::{data_bucket.bucket_name}/*",
+                            f"arn:aws:s3:::{stage_data_bucket.bucket_name}/*",
                         ],
                     ),
                     iam.PolicyStatement(
@@ -84,7 +98,7 @@ class GlueAthenaExampleStack(Stack):
             command=glue.CfnJob.JobCommandProperty(
                 name="glueetl",
                 python_version="3",
-                script_location=f"s3://{data_bucket.bucket_name}/glue-assets/scripts/job.py"
+                script_location=f"s3://{assets_bucket.bucket_name}/glue-assets/scripts/job.py"
             ),
             name="dae-glue-job",
             glue_version="4.0",
@@ -94,14 +108,15 @@ class GlueAthenaExampleStack(Stack):
             default_arguments={
                 "--enable-metrics":	"true",
                 "--enable-spark-ui": "true",
-                "--spark-event-logs-path": f"s3://{data_bucket.bucket_name}/glue-assets/sparkHistoryLogs/",
+                "--spark-event-logs-path": f"s3://{assets_bucket.bucket_name}/glue-assets/sparkHistoryLogs/",
                 "--enable-job-insights": "false",
                 "--enable-glue-datacatalog": "true",
                 "--enable-continuous-cloudwatch-log": "true",
                 "--job-bookmark-option": "job-bookmark-disable",
                 "--job-language": "python",
-                "--TempDir": f"s3://{data_bucket.bucket_name}/glue-assets/temporary/",
+                "--TempDir": f"s3://{assets_bucket.bucket_name}/glue-assets/temporary/",
                 "--DB_TARGET": "default",
                 "--TB_TARGET": "chicago_crimes",
-                "--DATA_BUCKET": data_bucket.bucket_name,
+                "--RAW_DATA_BUCKET": raw_data_bucket.bucket_name,
+                "--STAGE_DATA_BUCKET": stage_data_bucket.bucket_name
             })

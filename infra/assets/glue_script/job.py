@@ -15,7 +15,8 @@ spark = glueContext.spark_session
 job = Job(glueContext)
 job.init(args["JOB_NAME"], args)
 
-data_bucket = args['DATA_BUCKET']
+raw_data_bucket = args['RAW_DATA_BUCKET']
+stage_data_bucket = args['STAGE_DATA_BUCKET']
 db_target = args['DB_TARGET']
 tb_target = args['TB_TARGET']
 
@@ -30,7 +31,7 @@ crimes_frame = glueContext.create_dynamic_frame.from_options(
     format="csv",
     connection_options={
         "paths": [
-            f"s3://{data_bucket}/raw/"
+            f"s3://{raw_data_bucket}/crimes/"
         ],
         "recurse": True,
     },
