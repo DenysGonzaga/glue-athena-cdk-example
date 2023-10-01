@@ -6,6 +6,6 @@ import aws_cdk as cdk
 from glue_athena_infra.components import GlueAthenaExampleStack
 
 app = cdk.App()
-GlueAthenaExampleStack(app, "GlueAthenaExampleStack")
+GlueAthenaExampleStack(app, "glue-athena-example")
 
 app.synth()

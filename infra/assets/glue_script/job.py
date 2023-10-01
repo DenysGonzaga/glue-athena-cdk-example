@@ -8,7 +8,7 @@ from awsglue.dynamicframe import DynamicFrame
 from pyspark.sql.functions import *
 
 
-args = getResolvedOptions(sys.argv, ["JOB_NAME", "DATA_BUCKET", "DB_TARGET", "TB_TARGET"])
+args = getResolvedOptions(sys.argv, ["JOB_NAME", "RAW_DATA_BUCKET", "STAGE_DATA_BUCKET", "DB_TARGET", "TB_TARGET"])
 sc = SparkContext()
 glueContext = GlueContext(sc)
 spark = glueContext.spark_session
@@ -73,7 +73,7 @@ df = df.withColumn("update_on", to_timestamp("update_on", "MM/dd/yyyy KK:mm:ss a
 df_tgt = DynamicFrame.fromDF(df, glueContext , "df_tgt")
 
 destination_sink = glueContext.getSink(
-    path=f"s3://{data_bucket}/transformed/",
+    path=f"s3://{stage_data_bucket}/crimes/",
     connection_type="s3",
     updateBehavior="UPDATE_IN_DATABASE",
     partitionKeys=[],
